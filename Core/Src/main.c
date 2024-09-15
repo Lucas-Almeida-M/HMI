@@ -12,7 +12,7 @@
   * This software is licensed under terms that can be found in the LICENSE file
   * in the root directory of this software component.
   * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
+  *........................................
   ******************************************************************************
   */
 /* USER CODE END Header */
@@ -171,6 +171,28 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	switch (GPIO_Pin)
+	{
+		case B1_Pin:
+
+			break;
+		case Botao1_Pin:
+
+			break;
+		case Botao2_Pin:
+
+			break;
+		case Botao3_Pin:
+
+			break;
+		case Botao4_Pin:
+
+			break;
+	}
+}
 
 /* USER CODE END 4 */
 
