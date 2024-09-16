@@ -1,25 +1,16 @@
-/*
- * fonts.h
- *
- *  Created on: Sep 15, 2024
- *      Author: lucas
- */
-
-#ifndef THIRD_PARTY_DISPLAY_FONTS_H_
-#define THIRD_PARTY_DISPLAY_FONTS_H_
-
+#ifndef __FONTS_H__
+#define __FONTS_H__
 
 #include <stdint.h>
 
-typedef struct {
-    const uint8_t width;
-    uint8_t height;
-    const uint16_t *data;
-} FontDef;
+#define FONT1	Arial_Narrow8x12
+#define FONT2	Arial_Narrow10x13
+#define FONT3	Arial_Narrow12x16
+#define FONT4	Arial_Narrow15x19
 
+extern const uint8_t Arial_Narrow8x12[];
+extern const uint8_t Arial_Narrow10x13[];
+extern const uint8_t Arial_Narrow12x16[];
+extern const uint8_t Arial_Narrow15x19[];
 
-extern FontDef Font_7x10;
-extern FontDef Font_11x18;
-extern FontDef Font_16x26;
-
-#endif /* THIRD_PARTY_DISPLAY_FONTS_H_ */
+#endif // __FONTS_H__
