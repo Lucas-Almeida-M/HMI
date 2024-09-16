@@ -36,11 +36,14 @@
 //#include "stm32f4xx_hal.h"
 #include "string.h"
 #include "stdio.h"
+#include "buttons.h"
+
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+extern osMessageQueueId_t queue_buttonsHandle;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -105,6 +108,7 @@ int main(void)
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   ILI9341_Init();
+  init_buttons();
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -226,27 +230,7 @@ void Display_TASK(void *argument)
 }
 
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-	switch (GPIO_Pin)
-	{
-		case B1_Pin:
 
-			break;
-		case Botao1_Pin:
-
-			break;
-		case Botao2_Pin:
-
-			break;
-		case Botao3_Pin:
-
-			break;
-		case Botao4_Pin:
-
-			break;
-	}
-}
 
 /* USER CODE END 4 */
 

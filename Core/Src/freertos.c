@@ -30,6 +30,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 typedef StaticTask_t osStaticThreadDef_t;
+typedef StaticQueue_t osStaticMessageQDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -67,6 +68,29 @@ const osThreadAttr_t Display_TASK__attributes = {
   .stack_size = sizeof(Display_TASK_Buffer),
   .priority = (osPriority_t) osPriorityLow,
 };
+/* Definitions for Button_TASK_ */
+osThreadId_t Button_TASK_Handle;
+uint32_t Button_TASK_Buffer[ 2048 ];
+osStaticThreadDef_t Button_TASK_ControlBlock;
+const osThreadAttr_t Button_TASK__attributes = {
+  .name = "Button_TASK_",
+  .cb_mem = &Button_TASK_ControlBlock,
+  .cb_size = sizeof(Button_TASK_ControlBlock),
+  .stack_mem = &Button_TASK_Buffer[0],
+  .stack_size = sizeof(Button_TASK_Buffer),
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for queue_buttons */
+osMessageQueueId_t queue_buttonsHandle;
+uint8_t queue_buttonsBuffer[ 20 * sizeof( uint8_t ) ];
+osStaticMessageQDef_t queue_buttonsControlBlock;
+const osMessageQueueAttr_t queue_buttons_attributes = {
+  .name = "queue_buttons",
+  .cb_mem = &queue_buttonsControlBlock,
+  .cb_size = sizeof(queue_buttonsControlBlock),
+  .mq_mem = &queue_buttonsBuffer,
+  .mq_size = sizeof(queue_buttonsBuffer)
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -75,6 +99,7 @@ const osThreadAttr_t Display_TASK__attributes = {
 
 void StartDefaultTask(void *argument);
 void Display_TASK(void *argument);
+void Button_TASK(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -100,6 +125,10 @@ void MX_FREERTOS_Init(void) {
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
 
+  /* Create the queue(s) */
+  /* creation of queue_buttons */
+  queue_buttonsHandle = osMessageQueueNew (20, sizeof(uint8_t), &queue_buttons_attributes);
+
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
@@ -110,6 +139,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of Display_TASK_ */
   Display_TASK_Handle = osThreadNew(Display_TASK, NULL, &Display_TASK__attributes);
+
+  /* creation of Button_TASK_ */
+  Button_TASK_Handle = osThreadNew(Button_TASK, NULL, &Button_TASK__attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -155,6 +187,25 @@ __weak void Display_TASK(void *argument)
     osDelay(1);
   }
   /* USER CODE END Display_TASK */
+}
+
+/* USER CODE BEGIN Header_Button_TASK */
+/**
+* @brief Function implementing the Button_TASK_ thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_Button_TASK */
+__weak void Button_TASK(void *argument)
+{
+  /* USER CODE BEGIN Button_TASK */
+  /* Infinite loop */
+
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END Button_TASK */
 }
 
 /* Private application code --------------------------------------------------*/
