@@ -29,6 +29,7 @@
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
+typedef StaticTask_t osStaticThreadDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -54,6 +55,18 @@ const osThreadAttr_t defaultTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for Display_TASK_ */
+osThreadId_t Display_TASK_Handle;
+uint32_t Display_TASK_Buffer[ 8128 ];
+osStaticThreadDef_t Display_TASK_ControlBlock;
+const osThreadAttr_t Display_TASK__attributes = {
+  .name = "Display_TASK_",
+  .cb_mem = &Display_TASK_ControlBlock,
+  .cb_size = sizeof(Display_TASK_ControlBlock),
+  .stack_mem = &Display_TASK_Buffer[0],
+  .stack_size = sizeof(Display_TASK_Buffer),
+  .priority = (osPriority_t) osPriorityLow,
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -61,6 +74,7 @@ const osThreadAttr_t defaultTask_attributes = {
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
+void Display_TASK(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -94,6 +108,9 @@ void MX_FREERTOS_Init(void) {
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
+  /* creation of Display_TASK_ */
+  Display_TASK_Handle = osThreadNew(Display_TASK, NULL, &Display_TASK__attributes);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -120,6 +137,24 @@ void StartDefaultTask(void *argument)
     osDelay(1);
   }
   /* USER CODE END StartDefaultTask */
+}
+
+/* USER CODE BEGIN Header_Display_TASK */
+/**
+* @brief Function implementing the Display_TASK_ thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_Display_TASK */
+__weak void Display_TASK(void *argument)
+{
+  /* USER CODE BEGIN Display_TASK */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END Display_TASK */
 }
 
 /* Private application code --------------------------------------------------*/

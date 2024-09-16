@@ -67,6 +67,8 @@ void Error_Handler(void);
 #define Botao2_Pin GPIO_PIN_10
 #define Botao2_GPIO_Port GPIOB
 #define Botao2_EXTI_IRQn EXTI15_10_IRQn
+#define RST_Pin GPIO_PIN_7
+#define RST_GPIO_Port GPIOC
 #define Botao1_Pin GPIO_PIN_8
 #define Botao1_GPIO_Port GPIOA
 #define Botao1_EXTI_IRQn EXTI9_5_IRQn
@@ -86,8 +88,6 @@ void Error_Handler(void);
 #define Botao4_EXTI_IRQn EXTI9_5_IRQn
 #define CS_Pin GPIO_PIN_6
 #define CS_GPIO_Port GPIOB
-#define RST_Pin GPIO_PIN_7
-#define RST_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

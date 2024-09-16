@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include "dma.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -26,7 +27,15 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+//#include "ili9341.h"
+//#include "fonts.h"
+//#include "testimg.h"
+#include "ILI9341_STM32_Driver.h"
+#include "ILI9341_GFX.h"
+#include "snow_tiger.h"
+//#include "stm32f4xx_hal.h"
+#include "string.h"
+#include "stdio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -90,11 +99,12 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART2_UART_Init();
   MX_SPI1_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-
+  ILI9341_Init();
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -171,6 +181,50 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void Display_TASK(void *argument)
+{
+
+	static uint16_t x = 0;
+	static uint16_t y = 0;
+	static char BufferText[40];
+	HAL_GPIO_TogglePin(RST_GPIO_Port, RST_Pin);
+	osDelay(5);
+	HAL_GPIO_TogglePin(RST_GPIO_Port, RST_Pin);
+	ILI9341_FillScreen(WHITE);
+	osDelay(500);
+	ILI9341_FillScreen(YELLOW);
+	osDelay(500);
+	ILI9341_FillScreen(MAGENTA);
+	osDelay(500);
+	ILI9341_SetRotation(SCREEN_VERTICAL_2);
+	ILI9341_DrawText("Counting multiple segments at once", FONT2, 10, 10, BLACK, WHITE);
+	osDelay(2000);
+	ILI9341_FillScreen(WHITE);
+
+	for(uint16_t i = 0; i <= 10; i++)
+	{
+		sprintf(BufferText, "Counting: %d", i);
+		ILI9341_DrawText(BufferText, FONT3, 10, 10, BLACK, WHITE);
+		ILI9341_DrawText(BufferText, FONT3, 10, 30, BLUE, WHITE);
+		ILI9341_DrawText(BufferText, FONT3, 10, 50, RED, WHITE);
+		ILI9341_DrawText(BufferText, FONT3, 10, 70, GREEN, WHITE);
+		ILI9341_DrawText(BufferText, FONT3, 10, 90, BLACK, WHITE);
+		ILI9341_DrawText(BufferText, FONT3, 10, 110, BLUE, WHITE);
+		ILI9341_DrawText(BufferText, FONT3, 10, 130, RED, WHITE);
+		ILI9341_DrawText(BufferText, FONT3, 10, 150, GREEN, WHITE);
+		ILI9341_DrawText(BufferText, FONT3, 10, 170, WHITE, BLACK);
+		ILI9341_DrawText(BufferText, FONT3, 10, 190, BLUE, BLACK);
+		ILI9341_DrawText(BufferText, FONT3, 10, 210, RED, BLACK);
+	}
+  for(;;)
+  {
+
+     osDelay(1);
+  }
+
+}
+
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
