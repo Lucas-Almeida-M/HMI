@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include "adc.h"
 #include "dma.h"
 #include "spi.h"
 #include "tim.h"
@@ -37,6 +38,9 @@
 #include "string.h"
 #include "stdio.h"
 #include "buttons.h"
+#include "sensors.h"
+#include "FreeRTOS.h"
+#include "queue.h"
 
 
 /* USER CODE END Includes */
@@ -44,11 +48,14 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 extern osMessageQueueId_t queue_buttonsHandle;
+extern osMessageQueueId_t sensors_queueHandle;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define BUZZ_ON       HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+#define BUZZ_OFF      HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+#define BUZZ_TOGGLE   HAL_GPIO_TogglePin(buzzer_GPIO_Port, buzzer_Pin);
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -59,7 +66,7 @@ extern osMessageQueueId_t queue_buttonsHandle;
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+uint16_t adcint[5] = {0};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -106,9 +113,13 @@ int main(void)
   MX_USART2_UART_Init();
   MX_SPI1_Init();
   MX_TIM2_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
   ILI9341_Init();
   init_buttons();
+  dc_meas_init();
+  HAL_ADC_Start_DMA(&hadc1, adcint, 5);
+
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -189,22 +200,11 @@ void SystemClock_Config(void)
 void Display_TASK(void *argument)
 {
 
-	static uint16_t x = 0;
-	static uint16_t y = 0;
 	static char BufferText[40];
-	HAL_GPIO_TogglePin(RST_GPIO_Port, RST_Pin);
-	osDelay(5);
-	HAL_GPIO_TogglePin(RST_GPIO_Port, RST_Pin);
+	Sensors_Val sensorsVal = {0};
 	ILI9341_FillScreen(WHITE);
-	osDelay(500);
-	ILI9341_FillScreen(YELLOW);
-	osDelay(500);
-	ILI9341_FillScreen(MAGENTA);
 	osDelay(500);
 	ILI9341_SetRotation(SCREEN_VERTICAL_2);
-	ILI9341_DrawText("Counting multiple segments at once", FONT2, 10, 10, BLACK, WHITE);
-	osDelay(2000);
-	ILI9341_FillScreen(WHITE);
 
 	for(uint16_t i = 0; i <= 10; i++)
 	{
@@ -221,10 +221,23 @@ void Display_TASK(void *argument)
 		ILI9341_DrawText(BufferText, FONT3, 10, 190, BLUE, BLACK);
 		ILI9341_DrawText(BufferText, FONT3, 10, 210, RED, BLACK);
 	}
+	ILI9341_FillScreen(WHITE);
+	HAL_TIM_Base_Start_IT(&htim2);
   for(;;)
   {
+	 xQueueReceive(sensors_queueHandle, &sensorsVal, portMAX_DELAY);
 
-     osDelay(1);
+	 sprintf(BufferText, "Sensor 0 : %d", sensorsVal.adcVal[0]);
+	 ILI9341_DrawText(BufferText, FONT3, 10, 10, BLACK, WHITE);
+	 sprintf(BufferText, "Sensor 1 : %d", sensorsVal.adcVal[1]);
+	 ILI9341_DrawText(BufferText, FONT3, 10, 30, BLACK, WHITE);
+	 sprintf(BufferText, "Sensor 2 : %d", sensorsVal.adcVal[2]);
+	 ILI9341_DrawText(BufferText, FONT3, 10, 50, BLACK, WHITE);
+	 sprintf(BufferText, "Sensor 3 : %d", sensorsVal.adcVal[3]);
+	 ILI9341_DrawText(BufferText, FONT3, 10, 70, BLACK, WHITE);
+	 sprintf(BufferText, "Sensor 4 : %d", sensorsVal.adcVal[4]);
+	 ILI9341_DrawText(BufferText, FONT3, 10, 90, BLACK, WHITE);
+     osDelay(50);
   }
 
 }
@@ -251,7 +264,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-
+  if (htim->Instance == TIM2)
+  {
+	  adc_update_sample();
+  }
   /* USER CODE END Callback 1 */
 }
 

@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "sensors.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -91,6 +91,17 @@ const osMessageQueueAttr_t queue_buttons_attributes = {
   .mq_mem = &queue_buttonsBuffer,
   .mq_size = sizeof(queue_buttonsBuffer)
 };
+/* Definitions for sensors_queue */
+osMessageQueueId_t sensors_queueHandle;
+uint8_t sensors_queueBuffer[ 20 * sizeof( Sensors_Val ) ];
+osStaticMessageQDef_t sensors_queueControlBlock;
+const osMessageQueueAttr_t sensors_queue_attributes = {
+  .name = "sensors_queue",
+  .cb_mem = &sensors_queueControlBlock,
+  .cb_size = sizeof(sensors_queueControlBlock),
+  .mq_mem = &sensors_queueBuffer,
+  .mq_size = sizeof(sensors_queueBuffer)
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -128,6 +139,9 @@ void MX_FREERTOS_Init(void) {
   /* Create the queue(s) */
   /* creation of queue_buttons */
   queue_buttonsHandle = osMessageQueueNew (20, sizeof(uint8_t), &queue_buttons_attributes);
+
+  /* creation of sensors_queue */
+  sensors_queueHandle = osMessageQueueNew (20, sizeof(Sensors_Val), &sensors_queue_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
