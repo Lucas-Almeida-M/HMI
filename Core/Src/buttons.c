@@ -97,6 +97,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		case GPIO_PIN_0:
 			button = BOTAO_OK;
 			break;
+		case GPIO_PIN_2:
+
+			break;
+
 	}
 
 	if (button != 0xff)

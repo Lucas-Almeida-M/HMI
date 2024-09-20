@@ -66,7 +66,7 @@ const osThreadAttr_t Display_TASK__attributes = {
   .cb_size = sizeof(Display_TASK_ControlBlock),
   .stack_mem = &Display_TASK_Buffer[0],
   .stack_size = sizeof(Display_TASK_Buffer),
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityBelowNormal7,
 };
 /* Definitions for Button_TASK_ */
 osThreadId_t Button_TASK_Handle;
@@ -78,7 +78,7 @@ const osThreadAttr_t Button_TASK__attributes = {
   .cb_size = sizeof(Button_TASK_ControlBlock),
   .stack_mem = &Button_TASK_Buffer[0],
   .stack_size = sizeof(Button_TASK_Buffer),
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityBelowNormal7,
 };
 /* Definitions for queue_buttons */
 osMessageQueueId_t queue_buttonsHandle;

@@ -223,6 +223,7 @@ void Display_TASK(void *argument)
 	}
 	ILI9341_FillScreen(WHITE);
 	HAL_TIM_Base_Start_IT(&htim2);
+	HAL_GPIO_WritePin(Rele0_GPIO_Port, Rele0_Pin, 1);
   for(;;)
   {
 	 xQueueReceive(sensors_queueHandle, &sensorsVal, portMAX_DELAY);
