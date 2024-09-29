@@ -31,6 +31,8 @@
 /* Private typedef -----------------------------------------------------------*/
 typedef StaticTask_t osStaticThreadDef_t;
 typedef StaticQueue_t osStaticMessageQDef_t;
+typedef StaticSemaphore_t osStaticMutexDef_t;
+typedef StaticSemaphore_t osStaticSemaphoreDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -66,7 +68,7 @@ const osThreadAttr_t Display_TASK__attributes = {
   .cb_size = sizeof(Display_TASK_ControlBlock),
   .stack_mem = &Display_TASK_Buffer[0],
   .stack_size = sizeof(Display_TASK_Buffer),
-  .priority = (osPriority_t) osPriorityBelowNormal7,
+  .priority = (osPriority_t) osPriorityNormal1,
 };
 /* Definitions for Button_TASK_ */
 osThreadId_t Button_TASK_Handle;
@@ -78,7 +80,31 @@ const osThreadAttr_t Button_TASK__attributes = {
   .cb_size = sizeof(Button_TASK_ControlBlock),
   .stack_mem = &Button_TASK_Buffer[0],
   .stack_size = sizeof(Button_TASK_Buffer),
+  .priority = (osPriority_t) osPriorityNormal2,
+};
+/* Definitions for sensor_task_ */
+osThreadId_t sensor_task_Handle;
+uint32_t sensor_task_Buffer[ 512 ];
+osStaticThreadDef_t sensor_task_ControlBlock;
+const osThreadAttr_t sensor_task__attributes = {
+  .name = "sensor_task_",
+  .cb_mem = &sensor_task_ControlBlock,
+  .cb_size = sizeof(sensor_task_ControlBlock),
+  .stack_mem = &sensor_task_Buffer[0],
+  .stack_size = sizeof(sensor_task_Buffer),
   .priority = (osPriority_t) osPriorityBelowNormal7,
+};
+/* Definitions for AlarmsTask_ */
+osThreadId_t AlarmsTask_Handle;
+uint32_t AlarmsTask_Buffer[ 512 ];
+osStaticThreadDef_t AlarmsTask_ControlBlock;
+const osThreadAttr_t AlarmsTask__attributes = {
+  .name = "AlarmsTask_",
+  .cb_mem = &AlarmsTask_ControlBlock,
+  .cb_size = sizeof(AlarmsTask_ControlBlock),
+  .stack_mem = &AlarmsTask_Buffer[0],
+  .stack_size = sizeof(AlarmsTask_Buffer),
+  .priority = (osPriority_t) osPriorityLow,
 };
 /* Definitions for queue_buttons */
 osMessageQueueId_t queue_buttonsHandle;
@@ -102,6 +128,30 @@ const osMessageQueueAttr_t sensors_queue_attributes = {
   .mq_mem = &sensors_queueBuffer,
   .mq_size = sizeof(sensors_queueBuffer)
 };
+/* Definitions for display_mutex */
+osMutexId_t display_mutexHandle;
+osStaticMutexDef_t display_mutexControlBlock;
+const osMutexAttr_t display_mutex_attributes = {
+  .name = "display_mutex",
+  .cb_mem = &display_mutexControlBlock,
+  .cb_size = sizeof(display_mutexControlBlock),
+};
+/* Definitions for sensor_mutex */
+osMutexId_t sensor_mutexHandle;
+osStaticMutexDef_t sensor_mutexControlBlock;
+const osMutexAttr_t sensor_mutex_attributes = {
+  .name = "sensor_mutex",
+  .cb_mem = &sensor_mutexControlBlock,
+  .cb_size = sizeof(sensor_mutexControlBlock),
+};
+/* Definitions for buttonSemph */
+osSemaphoreId_t buttonSemphHandle;
+osStaticSemaphoreDef_t buttonSemphControlBlock;
+const osSemaphoreAttr_t buttonSemph_attributes = {
+  .name = "buttonSemph",
+  .cb_mem = &buttonSemphControlBlock,
+  .cb_size = sizeof(buttonSemphControlBlock),
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -111,6 +161,8 @@ const osMessageQueueAttr_t sensors_queue_attributes = {
 void StartDefaultTask(void *argument);
 void Display_TASK(void *argument);
 void Button_TASK(void *argument);
+void sensor_task(void *argument);
+void AlarmsTask(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -123,10 +175,20 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
+  /* Create the mutex(es) */
+  /* creation of display_mutex */
+  display_mutexHandle = osMutexNew(&display_mutex_attributes);
+
+  /* creation of sensor_mutex */
+  sensor_mutexHandle = osMutexNew(&sensor_mutex_attributes);
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
+
+  /* Create the semaphores(s) */
+  /* creation of buttonSemph */
+  buttonSemphHandle = osSemaphoreNew(1, 1, &buttonSemph_attributes);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
@@ -156,6 +218,12 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of Button_TASK_ */
   Button_TASK_Handle = osThreadNew(Button_TASK, NULL, &Button_TASK__attributes);
+
+  /* creation of sensor_task_ */
+  sensor_task_Handle = osThreadNew(sensor_task, NULL, &sensor_task__attributes);
+
+  /* creation of AlarmsTask_ */
+  AlarmsTask_Handle = osThreadNew(AlarmsTask, NULL, &AlarmsTask__attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -220,6 +288,42 @@ __weak void Button_TASK(void *argument)
     osDelay(1);
   }
   /* USER CODE END Button_TASK */
+}
+
+/* USER CODE BEGIN Header_sensor_task */
+/**
+* @brief Function implementing the sensor_task_ thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_sensor_task */
+__weak void sensor_task(void *argument)
+{
+  /* USER CODE BEGIN sensor_task */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END sensor_task */
+}
+
+/* USER CODE BEGIN Header_AlarmsTask */
+/**
+* @brief Function implementing the AlarmsTask_ thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_AlarmsTask */
+__weak void AlarmsTask(void *argument)
+{
+  /* USER CODE BEGIN AlarmsTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END AlarmsTask */
 }
 
 /* Private application code --------------------------------------------------*/

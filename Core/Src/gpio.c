@@ -51,58 +51,82 @@ void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, buzzer_Pin|Rele0_Pin|Rele1_Pin|RST_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, buzzer_Pin|Rele0_Pin|Rele1_Pin|LD8_Pin
+                          |RST_Pin|LD7_Pin|LD6_Pin|LD0_Pin
+                          |backlight_Pin|LD5_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, Rele2_Pin|Rele3_Pin|CS_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, Rele2_Pin|Rele3_Pin|LD11_Pin|LD10_Pin
+                          |LD9_Pin|CS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(DC_GPIO_Port, DC_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, DC_Pin|LD4_Pin|LD3_Pin|LD2_Pin
+                          |LD1_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PtPin */
-  GPIO_InitStruct.Pin = B1_Pin;
+  GPIO_InitStruct.Pin = BT_AZUL_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(BT_AZUL_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PtPin */
-  GPIO_InitStruct.Pin = Botao5_Pin;
+  GPIO_InitStruct.Pin = BT_ESQUERDA_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(Botao5_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(BT_ESQUERDA_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PCPin PCPin PCPin PCPin */
-  GPIO_InitStruct.Pin = buzzer_Pin|Rele0_Pin|Rele1_Pin|RST_Pin;
+  /*Configure GPIO pins : PCPin PCPin PCPin PCPin
+                           PCPin PCPin PCPin PCPin
+                           PCPin PCPin */
+  GPIO_InitStruct.Pin = buzzer_Pin|Rele0_Pin|Rele1_Pin|LD8_Pin
+                          |RST_Pin|LD7_Pin|LD6_Pin|LD0_Pin
+                          |backlight_Pin|LD5_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PBPin PBPin PBPin */
-  GPIO_InitStruct.Pin = Rele2_Pin|Rele3_Pin|CS_Pin;
+  /*Configure GPIO pin : PtPin */
+  GPIO_InitStruct.Pin = Sensor_infravermelho_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(Sensor_infravermelho_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PBPin PBPin PBPin PBPin
+                           PBPin PBPin */
+  GPIO_InitStruct.Pin = Rele2_Pin|Rele3_Pin|LD11_Pin|LD10_Pin
+                          |LD9_Pin|CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PtPin */
+  GPIO_InitStruct.Pin = Sensor_Presenca_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(Sensor_Presenca_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PBPin PBPin PBPin PBPin */
-  GPIO_InitStruct.Pin = Sensor_Presenca_Pin|Botao2_Pin|Botao3_Pin|Botao4_Pin;
+  GPIO_InitStruct.Pin = BT_BAIXO_Pin|BT_DIREITA_Pin|BT_OK_Pin|BT_ESC_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PtPin */
-  GPIO_InitStruct.Pin = Botao1_Pin;
+  GPIO_InitStruct.Pin = BT_CIMA_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(Botao1_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(BT_CIMA_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PtPin */
-  GPIO_InitStruct.Pin = DC_Pin;
+  /*Configure GPIO pins : PAPin PAPin PAPin PAPin
+                           PAPin */
+  GPIO_InitStruct.Pin = DC_Pin|LD4_Pin|LD3_Pin|LD2_Pin
+                          |LD1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(DC_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 5, 0);
