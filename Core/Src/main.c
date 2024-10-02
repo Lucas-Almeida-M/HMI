@@ -318,7 +318,7 @@ int visualization_screen (void *args)
 			sprintf(BufferText, "  Sensor %d : %d,%d C        ", i, sensorsVal.adcVal[i] / 10, sensorsVal.adcVal[i] % 10);
 		}
 		if ((sensorsVal.adcVal[i] / 10 )< navigation.screens[CONFIG_SCREEN].params[i])
-			ILI9341_DrawText(BufferText, FONT4, 10, 30 + (i * 20), GREEN, WHITE);
+			ILI9341_DrawText(BufferText, FONT4, 10, 30 + (i * 20), BLACK, WHITE);
 		else
 			ILI9341_DrawText(BufferText, FONT4, 10, 30 + (i * 20), BLUE, WHITE);
 	}
