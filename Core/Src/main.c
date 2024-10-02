@@ -49,10 +49,11 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-extern osMessageQueueId_t queue_buttonsHandle;
+extern osMessageQueueId_t buttons_queueHandle;
 extern osMessageQueueId_t sensors_queueHandle;
 extern osMutexId_t sensor_mutexHandle;
 extern osMutexId_t display_mutexHandle;
+extern osTimerId_t buzzerTimerHandle;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -144,6 +145,10 @@ int main(void)
   HAL_TIM_Base_Start(&htim3);
   HAL_TIM_Base_Start_IT(&htim8);
    __HAL_TIM_SET_COUNTER(&htim3, 0);
+   HAL_GPIO_WritePin(Rele0_GPIO_Port, Rele0_Pin, 1);
+   HAL_GPIO_WritePin(Rele1_GPIO_Port, Rele1_Pin, 1);
+   HAL_GPIO_WritePin(Rele2_GPIO_Port, Rele2_Pin, 1);
+   HAL_GPIO_WritePin(Rele3_GPIO_Port, Rele3_Pin, 1);
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -306,13 +311,16 @@ int visualization_screen (void *args)
 	{
 		if (i == navigation.pos.line)
 		{
-			sprintf(BufferText, "> Sensor %d : %d", i, sensorsVal.adcVal[i]);
+			sprintf(BufferText, "> Sensor %d : %d,%d C       ", i, sensorsVal.adcVal[i] / 10, sensorsVal.adcVal[i] % 10);
 		}
 		else
 		{
-			sprintf(BufferText, "  Sensor %d : %d", i, sensorsVal.adcVal[i]);
+			sprintf(BufferText, "  Sensor %d : %d,%d C        ", i, sensorsVal.adcVal[i] / 10, sensorsVal.adcVal[i] % 10);
 		}
-		ILI9341_DrawText(BufferText, FONT4, 10, 30 + (i * 20), BLACK, WHITE);
+		if ((sensorsVal.adcVal[i] / 10 )< navigation.screens[CONFIG_SCREEN].params[i])
+			ILI9341_DrawText(BufferText, FONT4, 10, 30 + (i * 20), GREEN, WHITE);
+		else
+			ILI9341_DrawText(BufferText, FONT4, 10, 30 + (i * 20), BLUE, WHITE);
 	}
 	osMutexRelease (sensor_mutexHandle);
 }
@@ -321,7 +329,7 @@ int visualization_screen (void *args)
 int command_screen (void *args)
 {
 	char BufferText[50];
-	char* releStatus[2] = {" : Desligado ", " : Ligado   "};
+	char* releStatus[2] = { " : Ligado   ", " : Desligado "};
 	bool state[4] = {0};
 
 	show_time();
@@ -408,7 +416,6 @@ int configuration_screen (void *args)
 int information_screen (void *args)
 {
 	char BufferText[50];
-
 	show_time();
 
 	if (navigation.pos.line == 0)
@@ -459,11 +466,11 @@ static void config_screen(uint16_t screenNum, int (*func_pointer)(void *args), u
 
 	if (habEdit)
 	{
-		navigation.screens[screenNum].params[0] = 25;
-		navigation.screens[screenNum].params[1] = 25;
-		navigation.screens[screenNum].params[2] = 25;
-		navigation.screens[screenNum].params[3] = 25;
-		navigation.screens[screenNum].params[4] = 25;
+		navigation.screens[screenNum].params[0] = 28;
+		navigation.screens[screenNum].params[1] = 28;
+		navigation.screens[screenNum].params[2] = 28;
+		navigation.screens[screenNum].params[3] = 50;
+		navigation.screens[screenNum].params[4] = 70;
 	}
 
 	navigation.screens[screenNum].linesMax = lines_max - 1;
@@ -639,47 +646,27 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 void Display_TASK(void *argument)
 {
-
 	static char BufferText[40];
-
 	ILI9341_FillScreen(WHITE);
 	osDelay(500);
 	ILI9341_SetRotation(SCREEN_VERTICAL_2);
-	HAL_GPIO_WritePin(backlight_GPIO_Port, backlight_Pin, 1);
-
-//	for(uint16_t i = 0; i <= 10; i++)
-//	{
-//		sprintf(BufferText, "Counting: %d", i);
-//		ILI9341_DrawText(BufferText, FONT4, 10, 10, BLACK, WHITE);
-//		ILI9341_DrawText(BufferText, FONT4, 10, 30, BLUE, WHITE);
-//		ILI9341_DrawText(BufferText, FONT4, 10, 50, RED, WHITE);
-//		ILI9341_DrawText(BufferText, FONT4, 10, 70, GREEN, WHITE);
-//		ILI9341_DrawText(BufferText, FONT4, 10, 90, BLACK, WHITE);
-//		ILI9341_DrawText(BufferText, FONT4, 10, 110, BLUE, WHITE);
-//		ILI9341_DrawText(BufferText, FONT4, 10, 130, RED, WHITE);
-//		ILI9341_DrawText(BufferText, FONT4, 10, 150, GREEN, WHITE);
-//		ILI9341_DrawText(BufferText, FONT4, 10, 170, WHITE, BLACK);
-//		ILI9341_DrawText(BufferText, FONT4, 10, 190, BLUE, BLACK);
-//		ILI9341_DrawText(BufferText, FONT4, 10, 210, RED, BLACK);
-//	}
 	ILI9341_FillScreen(WHITE);
 	HAL_TIM_Base_Start_IT(&htim2);
-	 if (!presenca)
-	 {
-		 HAL_GPIO_WritePin(backlight_GPIO_Port, backlight_Pin, 0);
-	 }
-	 else
-	 {
-		 HAL_GPIO_WritePin(backlight_GPIO_Port, backlight_Pin, 1);
-	 }
+	init_screens();
 
-	 init_screens();
   for(;;)
   {
-	  osMutexAcquire (display_mutexHandle, osWaitForever);
-	  navigation.screens[navigation.actualScreen].callback(&navigation);
-	  osMutexRelease (display_mutexHandle);
-
+	  if (HAL_GPIO_ReadPin(Sensor_Presenca_GPIO_Port, Sensor_Presenca_Pin))
+	  {
+		 HAL_GPIO_WritePin(backlight_GPIO_Port, backlight_Pin, 0);
+	  }
+	  else
+	  {
+		 HAL_GPIO_WritePin(backlight_GPIO_Port, backlight_Pin, 1);
+		 osMutexAcquire (display_mutexHandle, osWaitForever);
+		 navigation.screens[navigation.actualScreen].callback(&navigation);
+		 osMutexRelease (display_mutexHandle);
+	  }
      osDelay(500);
   }
 }
@@ -732,7 +719,7 @@ int callback_botao_direita (void *arguments)
 		return 0;
 	}
 
-	if(navigation.screens[navigation.actualScreen].params[navigation.pos.line] >= 40)
+	if(navigation.screens[navigation.actualScreen].params[navigation.pos.line] >= 90)
 	{
 		return 0;
 	}
@@ -787,8 +774,6 @@ int callback_botao_ok (void *arguments)
 				else
 					HAL_GPIO_WritePin(Rele3_GPIO_Port, Rele3_Pin, 1);
 				break;
-
-
 		}
 		return 0;
 	}
@@ -832,10 +817,10 @@ void button_buzzon(void)
 
 void Button_TASK(void *argument)
 {
-	uint8_t buttonID = 0;
+  uint8_t buttonID = 0;
   for(;;)
   {
-	xQueueReceive(queue_buttonsHandle, &buttonID, portMAX_DELAY);
+	xQueueReceive(buttons_queueHandle, &buttonID, portMAX_DELAY);
 
 	osMutexAcquire (display_mutexHandle, osWaitForever);
 
@@ -845,7 +830,6 @@ void Button_TASK(void *argument)
 	osMutexRelease (display_mutexHandle);
     osDelay(1);
   }
-
 }
 
 
@@ -862,19 +846,19 @@ void sensor_task(void *argument)
 	 }
     osDelay(1);
   }
-
 }
 
 void AlarmsTask(void *argument)
 {
 	Sensors_Val tempVal = {0};
+	bool buzzerAlarm = 0;
   for(;;)
   {
 	osMutexAcquire (sensor_mutexHandle, osWaitForever);
 	memcpy(&tempVal, &sensorsVal, sizeof(Sensors_Val));
 	osMutexRelease (sensor_mutexHandle);
 
-	if(tempVal.adcVal[0] > navigation.screens[VISUALIZATION_SCREEN].params[0])
+	if((float)(tempVal.adcVal[0] / 10) < navigation.screens[CONFIG_SCREEN].params[0])
 	{
 		HAL_GPIO_WritePin(LD0_GPIO_Port, LD0_Pin, 1);
 		HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, 0);
@@ -883,9 +867,10 @@ void AlarmsTask(void *argument)
 	{
 		HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, 1);
 		HAL_GPIO_WritePin(LD0_GPIO_Port, LD0_Pin, 0);
+		buzzerAlarm = 1;
 	}
 
-	if(tempVal.adcVal[1] > navigation.screens[VISUALIZATION_SCREEN].params[1])
+	if((float)(tempVal.adcVal[1] / 10) < navigation.screens[CONFIG_SCREEN].params[1])
 	{
 		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, 1);
 		HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, 0);
@@ -894,9 +879,10 @@ void AlarmsTask(void *argument)
 	{
 		HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, 1);
 		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, 0);
+//		buzzerAlarm = 1;
 	}
 
-	if(tempVal.adcVal[2] > navigation.screens[VISUALIZATION_SCREEN].params[2])
+	if((float)(tempVal.adcVal[2] / 10) < navigation.screens[CONFIG_SCREEN].params[2])
 	{
 		HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, 1);
 		HAL_GPIO_WritePin(LD5_GPIO_Port, LD5_Pin, 0);
@@ -905,9 +891,10 @@ void AlarmsTask(void *argument)
 	{
 		HAL_GPIO_WritePin(LD5_GPIO_Port, LD5_Pin, 1);
 		HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, 0);
+//		buzzerAlarm = 1;
 	}
 
-	if(tempVal.adcVal[3] > navigation.screens[VISUALIZATION_SCREEN].params[3])
+	if((float)(tempVal.adcVal[3] / 10) < navigation.screens[CONFIG_SCREEN].params[3])
 	{
 		HAL_GPIO_WritePin(LD6_GPIO_Port, LD6_Pin, 1);
 		HAL_GPIO_WritePin(LD7_GPIO_Port, LD7_Pin, 0);
@@ -916,9 +903,10 @@ void AlarmsTask(void *argument)
 	{
 		HAL_GPIO_WritePin(LD7_GPIO_Port, LD7_Pin, 1);
 		HAL_GPIO_WritePin(LD6_GPIO_Port, LD6_Pin, 0);
+//		buzzerAlarm = 1;
 	}
 
-	if(tempVal.adcVal[4] > navigation.screens[VISUALIZATION_SCREEN].params[4])
+	if((float)(tempVal.adcVal[4] / 10) < navigation.screens[CONFIG_SCREEN].params[4])
 	{
 		HAL_GPIO_WritePin(LD8_GPIO_Port, LD8_Pin, 1);
 		HAL_GPIO_WritePin(LD9_GPIO_Port, LD9_Pin, 0);
@@ -927,9 +915,23 @@ void AlarmsTask(void *argument)
 	{
 		HAL_GPIO_WritePin(LD9_GPIO_Port, LD9_Pin, 1);
 		HAL_GPIO_WritePin(LD8_GPIO_Port, LD8_Pin, 0);
+//		buzzerAlarm = 1;
+	}
+
+
+	if (buzzerAlarm)
+	{
+		HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, 1);
+		osTimerStart(buzzerTimerHandle, 20);
+		buzzerAlarm = 0;
 	}
 	osDelay(500);
   }
+}
+
+void buzzerTimer_calbk(void *argument)
+{
+	HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, 0);
 }
 
 /* USER CODE END 4 */
@@ -966,7 +968,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   {
 	  __HAL_TIM_CLEAR_IT(&htim5, TIM_IT_UPDATE);
 	  HAL_TIM_Base_Stop_IT(&htim5);
-	  xQueueSendToBackFromISR(queue_buttonsHandle, &buttonEntry, 1);
+	  xQueueSendToBackFromISR(buttons_queueHandle, &buttonEntry, 1);
 	  buttonEntry = 0xff;
 	  debouncing = 0;
   }

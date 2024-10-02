@@ -33,7 +33,7 @@ void adc_update_sample(void)
 	{
 		if (dcMeas.adc[i].numSamples >= dcMeas.adc[i].windowNum)
 		{
-			dcMeas.adc[i].sum += adcint[i];
+			dcMeas.adc[i].sum += (uint16_t) ( (float) (adcint[i] * 0.08 * 10) );
 			dcMeas.adc[i].sum -= dcMeas.adc[i].sum / (dcMeas.adc[i].windowNum + 1);
 			dcMeas.adc[i].mean = dcMeas.adc[i].sum / dcMeas.adc[i].windowNum;
 		}

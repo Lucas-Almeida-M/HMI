@@ -31,6 +31,7 @@
 /* Private typedef -----------------------------------------------------------*/
 typedef StaticTask_t osStaticThreadDef_t;
 typedef StaticQueue_t osStaticMessageQDef_t;
+typedef StaticTimer_t osStaticTimerDef_t;
 typedef StaticSemaphore_t osStaticMutexDef_t;
 typedef StaticSemaphore_t osStaticSemaphoreDef_t;
 /* USER CODE BEGIN PTD */
@@ -106,12 +107,12 @@ const osThreadAttr_t AlarmsTask__attributes = {
   .stack_size = sizeof(AlarmsTask_Buffer),
   .priority = (osPriority_t) osPriorityLow,
 };
-/* Definitions for queue_buttons */
-osMessageQueueId_t queue_buttonsHandle;
+/* Definitions for buttons_queue */
+osMessageQueueId_t buttons_queueHandle;
 uint8_t queue_buttonsBuffer[ 20 * sizeof( uint8_t ) ];
 osStaticMessageQDef_t queue_buttonsControlBlock;
-const osMessageQueueAttr_t queue_buttons_attributes = {
-  .name = "queue_buttons",
+const osMessageQueueAttr_t buttons_queue_attributes = {
+  .name = "buttons_queue",
   .cb_mem = &queue_buttonsControlBlock,
   .cb_size = sizeof(queue_buttonsControlBlock),
   .mq_mem = &queue_buttonsBuffer,
@@ -127,6 +128,14 @@ const osMessageQueueAttr_t sensors_queue_attributes = {
   .cb_size = sizeof(sensors_queueControlBlock),
   .mq_mem = &sensors_queueBuffer,
   .mq_size = sizeof(sensors_queueBuffer)
+};
+/* Definitions for buzzerTimer */
+osTimerId_t buzzerTimerHandle;
+osStaticTimerDef_t buzzerTimerControlBlock;
+const osTimerAttr_t buzzerTimer_attributes = {
+  .name = "buzzerTimer",
+  .cb_mem = &buzzerTimerControlBlock,
+  .cb_size = sizeof(buzzerTimerControlBlock),
 };
 /* Definitions for display_mutex */
 osMutexId_t display_mutexHandle;
@@ -163,6 +172,7 @@ void Display_TASK(void *argument);
 void Button_TASK(void *argument);
 void sensor_task(void *argument);
 void AlarmsTask(void *argument);
+void buzzerTimer_calbk(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -194,13 +204,17 @@ void MX_FREERTOS_Init(void) {
   /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
 
+  /* Create the timer(s) */
+  /* creation of buzzerTimer */
+  buzzerTimerHandle = osTimerNew(buzzerTimer_calbk, osTimerOnce, NULL, &buzzerTimer_attributes);
+
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
 
   /* Create the queue(s) */
-  /* creation of queue_buttons */
-  queue_buttonsHandle = osMessageQueueNew (20, sizeof(uint8_t), &queue_buttons_attributes);
+  /* creation of buttons_queue */
+  buttons_queueHandle = osMessageQueueNew (20, sizeof(uint8_t), &buttons_queue_attributes);
 
   /* creation of sensors_queue */
   sensors_queueHandle = osMessageQueueNew (20, sizeof(Sensors_Val), &sensors_queue_attributes);
@@ -324,6 +338,14 @@ __weak void AlarmsTask(void *argument)
     osDelay(1);
   }
   /* USER CODE END AlarmsTask */
+}
+
+/* buzzerTimer_calbk function */
+__weak void buzzerTimer_calbk(void *argument)
+{
+  /* USER CODE BEGIN buzzerTimer_calbk */
+
+  /* USER CODE END buzzerTimer_calbk */
 }
 
 /* Private application code --------------------------------------------------*/
